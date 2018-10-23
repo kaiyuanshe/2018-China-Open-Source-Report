@@ -9,6 +9,7 @@ cache:
 
 before_install:
   - export TZ='Asia/Shanghai'
+  - sudo apt-get install calibre fonts-noto-cjk -y
 
 install:
   - npm install gitbook-cli -g
@@ -16,15 +17,30 @@ install:
 
 script:
   - gitbook build . ./build
+  - xvfb-run gitbook pdf ./ ./2018-China-Open-Source-Report.pdf
+  - gitbook epub ./ ./2018-China-Open-Source-Report.epub
+  - gitbook mobi ./ ./2018-China-Open-Source-Report.mobi
 
-branches:
-  only:
-    - master
+before_deploy:
+      # Set up git user name and tag this commit
+      - git config --local user.name "robot"
+      - git config --local user.email "robot@localhost"
+      - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
 
 deploy:
-  provider: pages
-  skip_cleanup: true
-  github_token: $GITHUB_TOKEN
-  local_dir: build
-  on:
-    branch: master
+  - provider: pages
+    skip_cleanup: true
+    github_token: $GITHUB_TOKEN
+    local_dir: build
+    on:
+      branch: master
+
+  - provider: releases
+    api_key: $GITHUB_TOKEN
+    file:  
+      - "2018-China-Open-Source-Report.epub"
+      - "2018-China-Open-Source-Report.pdf"
+      - "2018-China-Open-Source-Report.mobi"
+    skip_cleanup: true
+    on:
+      tags: true
