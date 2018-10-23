@@ -1,0 +1,39 @@
+language: node_js
+
+node_js:
+  - "8"
+
+cache:
+  directories:
+    - $HOME/.npm
+
+before_install:
+  - export TZ='Asia/Shanghai'
+
+install:
+  - npm install gitbook-cli -g
+  - gitbook install
+  - npm install gitbook-pdf -g
+
+script:
+  - gitbook build . ./build
+  - gitbook pdf ./ ./opensource-whitebook.pdf
+
+branches:
+  only:
+    - master
+
+deploy:
+  - provider: pages
+    skip_cleanup: true
+    github_token: $GITHUB_TOKEN
+    local_dir: build
+    on:
+      branch: master
+ - provider: releases
+   api_key: $GITHUB_TOKEN
+   skip_cleanup: true
+   file: "opensource-whitebook.pdf"
+   on:
+    tags: true
+ 
